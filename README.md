@@ -1,3 +1,5 @@
+# About
+- This is a dashboard for cryptocurrenices written in react. The apploication loads results on a regular interval (currently 60 seconds and soon to be user udjustable), and will render them in realtime.
 # Getting started
 ## To start the mock database server
 - `json-server --watch ./db/db.json --port 8080`
