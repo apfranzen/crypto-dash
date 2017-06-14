@@ -1,21 +1,18 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
-import Data from './Data';
 import DataContainer from './DataContainer';
 
 class App extends Component {
-  render() {
+  render(state) {
     return (
-      <div className="App">
+      <div className="container">
         <div className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h2>Welcome to React</h2>
+          <h1 className="display-2 text-center align-middle">Crypto-Dash</h1>
         </div>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-        <DataContainer />
+        {/*{this.state.initialized}*/}
+        <DataContainer
+        handler={this.handler} 
+        />
       </div>
     );
   }
