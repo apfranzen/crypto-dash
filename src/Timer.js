@@ -12,7 +12,7 @@ class Timer extends React.Component {
     this.setState((prevState) => ({
       secondsElapsed: prevState.secondsElapsed + 1
     }));
-    if (this.state.secondsElapsed === 10) {
+    if (this.state.secondsElapsed === 60) {
         clearInterval(this.interval);
       this.setState((prevState) => ({
         secondsElapsed: 0
