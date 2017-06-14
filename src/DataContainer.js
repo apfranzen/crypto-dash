@@ -1,77 +1,141 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import axios from 'axios'
 import Data from './Data'
+import Timer from './Timer'
+import Jumbotron from './Jumbotron'
+
+// import db from './db/db.json'
+const { List } = require('immutable')
+
 
 class DataContainer extends Component {
+  
   constructor() {
     super();
     this.state = { 
       eth: null,
-      zec: null
+      zec: null,
+      initialized: false,
+      secondsRemaining: 10
      }
+     this.init = this.init.bind(this);
+    //  this.handler = this.handler.bind(this);
   }
   
-  componentDidMount() {
+  componentWillMount() {
     const now = Date.now()
-    Promise.all([ethFetch(now), zecFetch(now)])
+    const currencies = ['eth', 'zec']
+    // currencies.map((currency) => this.init(currency))
+    Promise.all([this.init('eth'), this.init('zec')])
       .then((payload) => {
-        console.log(this)
+        console.log(payload)
         this.setState({
-          eth: payload[0].ETH.USD,
-          zec: payload[1].ZEC.USD
+          eth: payload[0],
+          zec: payload[1]
+        }, function() {
+          console.log(this.state)
+          this.setState({initialized: true})
         })
       })
+  }
+
+  // componentDidMount() {
+  //   this.setState
+  // }
+
+  fetchData(ts, curr) {
+      return axios.get(`https://min-api.cryptocompare.com/data/pricehistorical?fsym=${curr}&tsyms=USD&ts=${ts}`)
+          .then(function (response) {
+            return response.data
+          })
+        .catch(function (error) {
+          console.log(error);
+        });
+    };
+
+  init(currency) {
+    return axios.get(`http://localhost:8080/${currency}?_sort=timestamp&_order=desc&_limit=10`)
+      .then((response) => {
+        return response.data
+      })
+  }
+
+  handler() {
+    console.log('hit')
+    const now = Date.now()
     
-    function ethFetch(ts){
-      console.log('now from one ', now)
-      return axios.get(`https://min-api.cryptocompare.com/data/pricehistorical?fsym=ETH&tsyms=USD&ts=${ts}`)
-          .then(function (response) {
-            // console.log(response.data);
-            return response.data
-            // {
-            //     this.setState({comments: comments});
-            //   }.bind(this)
-          })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
+    Promise.all([this.fetchData(now, 'ETH'), this.fetchData(now, 'ZEC')])
+      .then((payload, eth, zec) => {
+        
+        // console.log(payload)
+        const latestEth = {
+            id: Date.now(),
+            timestamp: now,
+            price: payload[0].ETH.USD
+        }
 
-    function zecFetch(ts) {
-      console.log('now from two ', now)
-      return axios.get(`https://min-api.cryptocompare.com/data/pricehistorical?fsym=ZEC&tsyms=USD&ts=${ts}`)
-          .then(function (response) {
-            // console.log(response.data);
-            return response.data
-            // {
-            //     this.setState({comments: comments});
-            //   }.bind(this)
-          })
-        .catch(function (error) {
-          console.log(error);
-        });
-    }
-   
+        const latestZec = {
+            id: Date.now(),
+            timestamp: now,
+            price: payload[1].ZEC.USD
+        }
 
-    // $.ajax({
-    //   url: "/my-comments.json",
-    //   dataType: 'json',
-    //   success: function(comments) {
-    //     this.setState({comments: comments});
-    //   }.bind(this)
-    // });
+        
+
+        var ethList1 = this.state.eth
+
+        var ethList2 = this.state.eth.concat(latestEth)
+        var zecList1 = this.state.zec
+        var zecList2 = this.state.zec.concat(latestZec)
+
+        ethList2.sort(function (a, b) {
+          return b.timestamp - a.timestamp;
+        });
+        zecList2.sort(function (a, b) {
+          return b.timestamp - a.timestamp;
+        });
+        
+        ethList2.splice(10, 1)
+        zecList2.splice(10, 1)
+       
+        this.setState({
+          eth: ethList2,
+          zec: zecList2
+        })
+
+        axios.post('http://localhost:8080/eth', {
+            timestamp: Date.now(),
+            price: payload[0].ETH.USD
+        })
+          .then(function(response) {
+          })
+        axios.post('http://localhost:8080/zec', {
+            timestamp: Date.now(),
+            price: payload[1].ZEC.USD
+        })
+          .then(function(response) {
+          })
+      })
   }
   
-  render() {
-    return <Data 
-    eth={this.state.eth} 
-    zec={this.state.zec}
-    />;
-    // return <h1>DataContainer</h1>
+  render(state) {
+    {console.log(this.state.initialized)}
+      if (this.state.initialized && this.state.zec.length === 10) {
+        {console.log(this.state.initialized)}
+        return <div>
+          <Timer handler={this.handler}/>
+        <Jumbotron 
+        eth={this.state.eth}
+        zec={this.state.zec}
+        />
+        <Data
+          eth={this.state.eth}
+          zec={this.state.zec}
+        />
+        </div>
+      }
+      return <h3>Still loading</h3>;
   }
 }
 
 export default DataContainer;
-
-
